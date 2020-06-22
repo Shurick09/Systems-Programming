@@ -1,0 +1,65 @@
+Documentation
+
+Authors: Alexander Rozenblit & Ryan Mulhall
+
+Name: scannerCSVsorter.c
+
+Description:
+
+Program takes one necessary flag and two optional ones. The necessary one is -c and specifies the column name that the CSV's will be sorted by. The two optional ones are -d and -o. -d specifies the directory that will be parsed for CSV files. If -d is not used then the scanner will parse the current directory. -o specifies the output directory where all the sorted CSV files will be put after execution. If -o is not specified the sorted CSVs will be put into the same directory as the source file. These flags are order independent so no matter which order the flags are used the scanner will work.
+
+The program parses through the directory and sends every file to the fileHandler. Every nested directory is forked and  opened to make sure every file in the directory is sent to the fileHandler. The fileHandler then checks if the file is a CSV and if it is forks and sends that file to the sorter. If the file is not a CSV the program reports a non fatal error to STDERR.
+
+When the sorter has a CSV file it sorts it by reading each row into a buffer character by character.This buffer is then tokenized using strtok and the information is held in a linked list data structure. The linked list has a node for each row. Each node has an array of strings called row which are the nonprocessed tokens from the csv. As well as a string called sortBy that is processed for quotations and white space. I populate this linked list with the information from the CSV and send it to merge.c. merge.c then returns an ordered version of this linked list, and I write that linked list in a CSV format to the output directory.
+
+Lastly, the original process ID, process IDs of all the children, and total number of proccesses created will all be outputted to STDOUT.
+
+Difficulties:
+
+One of the difficulties faced was keeping count of the children's children processes. After forking, a process can only access a copy of it's parents global variables, meaning that the child count could not be incremented correctly. This was solved by using the mmap function, which creates a mapping for a global variable that could be accessed from each process.
+
+Name: merge.c
+
+Description:
+
+Program is to be compiled as an object file and then linked with simpleCSVsorter.c. It contains function definitions for the mergesort and setType functions found in simpleCSVsorter.h. It is used by first calling the setType function with an integer between 0-27 inclusive, corresponding to the 28 given column headers. This determines whether it will be sorted numerically or lexicographically. Then the mergesort function can be called with the first node in an unsorted list, and it will return the list sorted according to their sortBy values.
+
+Difficulties:
+
+Initially integers were used as the numerical values which caused incorrect sorting of movie scores and aspect ratios. Additionally, since the sortBy field is a string, the types of comparisons between nodes was initially by determining if each sortBy value was able to be converted to a float and then sorting it numerically or lexicographically based on that. This created issues when certain movie titles were numerical (ex.the movie "2012"), so the setType function was created.
+
+Name: simpleCSVsorter.h
+
+Description:
+
+Header file declares the linked list node* that all the rows of the csv are stored. Also defines STDIN, STDOUT, and STDERR.
+
+Using scannerCSVsorter.c
+
+Compile merge.c into merge.o and then compile scannerCSVsorter.c to an executable using merge.o. To sort directory INPUTDIR and output the sorted CSV files to directory OUTPUTDIR using COLUMN to sort each file by run the command:
+
+./sorter -c COLUMN -d INPUTDIR -o OUTPUTDIR
+
+Note: The flag order does not matter.
+
+Testing:
+
+To test the program when we were first writing it we used a small directory only three CSV files inside to make it easy to see if the program was sorting all of the files correctly and putting the sorted versions in the correct directory. After we saw this was working we started testing four separate cases. These cases were 
+1. -d and -o were both specfied
+2. -d  was specified and -o was not
+3. -d was not specfied and -o was
+4. -d and -o were both not specified
+
+After that we started testing nested directories to make sure that every nested directory was opened and the correct amount of processes were made.
+
+Lastly, after we understood that our program works under properly formatted input we started making incorrectly formatted CSVs and typing in the flags incorrectyl to make sure the program would break gracefully with an output message to STDERR and not seg fault.
+
+Test directories used:
+
+TestDir
+otherTestDir
+otherTestDirOutput
+anotherTestDir
+numSort
+
+Used sampleOutput.txt to make sure the correct output was being sent to STDOUT and STDERR.

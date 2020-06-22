@@ -1,0 +1,56 @@
+Documentation
+
+Authors: Alexander Rozenblit & Ryan Mulhall
+
+Name: simpleCSVsorter.c
+
+Description:
+
+Program takes in the parameters -c and column name. It also reads a CSV file through STDIN. The CSV file is sorted by column according to the specifical column specified in the parameters. Program reads each row of the csv into a buffer character by character. This buffer is then tokenized using strtok and the information is held in a linked list data structure. The linked list has a node for each row. Each node has an array of strings called row which are the nonprocessed tokens from the csv. As well as a string called sortBy that is processed for quotations and white space. I populate this linked list with the information from the CSV and send it to merge.c. merge.c then returns an ordered version of this linked list, and I print it using a special file that prints it in the CSV comma delimited format.
+
+Difficulties:
+
+While reading in and organizing the data there was a couple difficulties. First there needed to be a way of dealing with empty or NULL values. This was handled by putting a special character in the place of all empty cells. When outputting the data all of that special character was removed. Another difficulty was handling values with commas in them. Since the strategy used was tokenizing by using comma as the delimiter this was tricky to navigate, but using the quotations around those special values with commas it was handled.
+
+Name: merge.c
+
+Description:
+
+Program is to be compiled as an object file and then linked with simpleCSVsorter.c. It contains function definitions for the mergesort and setType functions found in simpleCSVsorter.h. It is used by first calling the setType function with an integer between 0-27 inclusive, corresponding to the 28 given column headers. This determines whether it will be sorted numerically or lexicographically. Then the mergesort function can be called with the first node in an unsorted list, and it will return the list sorted according to their sortBy values.
+
+Difficulties:
+
+Initially integers were used as the numerical values which caused incorrect sorting of movie scores and aspect ratios. Additionally, since the sortBy field is a string, the types of comparisons between nodes was initially by determining if each sortBy value was able to be converted to a float and then sorting it numerically or lexicographically based on that. This created issues when certain movie titles were numerical (ex.the movie "2012"), so the setType function was created.
+
+Name: simpleCSVsorter.h
+
+Description:
+
+Header file declares the linked list node* that all the rows of the csv are stored. Also defines STDIN, STDOUT, and STDERR. 
+
+Using simpleCSVsorter:
+
+Compile merge.c into merge.o and then compile simpleCSVsorter.c to an executable using merge.o. To sort movies.csv file by COLUMN_NAME and write to sortedMovies.csv file run this command: cat movies.csv | ./simpleCSVsorter -c COLUMN_NAME > sortedMovies.csv
+
+Testing:
+
+While we were writing the program we used the given move_metadata.csv to make sure the program would compile and run. After we compiled and started consistently running it without segmentation faults we started making our own smaller test files to start making sure that the merge sort sorted the data by the correct column and sorted it correctly. In this part of the testing we made sure that the algorithm worked with any number of columns and in any order.
+
+After these simpler test cases worked we started testing trickier cases that could potentially cause a problem. These include CSV's with empty cells and CSV's where some tokens had commas in them. We made test files that made sure to include these cases to make sure the program dealt with them correctly.
+
+We also experimented with the linux command diff that is used to compare two different files line by line. To use this we made a csv that was in the correct order and compared it to the csv that our program made when given an unsorted file with the same information.
+
+Test files used:
+
+movies_metadata.csv
+testFile.csv
+testFile2.csv
+testFile3.csv
+testFile4.csv
+
+Extra Credit
+
+1. For this question we wanted to find something in common with the greatest movies according to the imdb_score. To start we briefly modified our merge sort algorithm so that it would sort in descending order for the purpose of looking at the greatest movies. We also decided to only look at the top 50 movies. 
+
+To start we noticed that only 5 movies out of the 50 were rated PG  and only 1 was rated G. So critics think only a select few movies suitable for children are part of the all time greats. Also, we noticed U.S. cinema dominates every other country with the U.S. having 40 out of the 50 greatest movies and and no other country having more than 2. The most interesting pattern we noticed was that the top 50 are dominated by two genres crime and drama. Also, almost every movie that was crime genre was also a drama. Our analysis of the data showed us that for a movie to have a strong chance of being an all time great it needs a couple of features. It needs to be rated PG-13 or R, needs to be filmed in the U.S., and needs to be a drama about crime. Of course there were movies that didn't follow these rules, however they are anamolies. For the best chance of being highly ranked on IMDB those three features are essential.
+ 

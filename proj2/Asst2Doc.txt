@@ -1,0 +1,47 @@
+Documentation
+
+Authors: Alexander Rozenblit & Ryan Mulhall
+
+Name: multiThreadScanner_thread.c
+
+Description:
+
+Program takes one necessary flag and two optional ones. The necessary one is -c and specifies the column name that the CSV's will be sorted by. The two optional ones are -d and -o. -d specifies the directory that will be parsed for CSV files. If -d is not used then the scanner will parse the current directory. -o specifies the output directory where all the sorted CSV files will be put after execution. If -o is not specified the sorted CSVs will be put into the same directory as the source file. These flags are order independent so no matter which order the flags are used the scanner will work.
+
+The program parses through the directory and sends every file to the fileHandler through a new thread. A new thread is created for every subdirectory, which is then opened to make sure every file in the directory is sent to the fileHandler through another new thread. The fileHandler then checks if the file is a CSV and if it is sends that file to the sorter. If the file is not a CSV the program reports a non fatal error to STDERR.
+
+When the sorter has a CSV file it sorts it by reading each row into a buffer character by character.This buffer is then tokenized using strtok and the information is held in a linked list data structure. The linked list has a node for each row. Each node has an array of strings called row which are the nonprocessed tokens from the csv. As well as a string called sortBy that is processed for quotations and white space. I populate this linked list with the information from the CSV and then call mergesort() from the mergesort.o file. The mergesort function then returns an ordered version of this linked list, which then undergoes a sorted merge with a sorted global linked list containing all the previous sorted lists. At the end of the program this list is then written to a file in the given output directory.
+
+For each spawned thread the process ID, TID's of it's child threads and total amount of child threads are printed to STDOUT.
+
+Difficulties:
+
+
+
+Name: mergesort.c
+
+Description:
+
+Program is to be compiled as an object file and then linked with simpleCSVsorter.c. It contains function definitions for the mergesort and setType functions found in simpleCSVsorter.h. It is used by first calling the setType function with an integer between 0-27 inclusive, corresponding to the 28 given column headers. This determines whether it will be sorted numerically or lexicographically. Then the mergesort function can be called with the first node in an unsorted list, and it will return the list sorted according to their sortBy values.
+
+Difficulties:
+
+Initially integers were used as the numerical values which caused incorrect sorting of movie scores and aspect ratios. Additionally, since the sortBy field is a string, the types of comparisons between nodes was initially by determining if each sortBy value was able to be converted to a float and then sorting it numerically or lexicographically based on that. This created issues when certain movie titles were numerical (ex.the movie "2012"), so the setType function was created.
+
+Name: multiThreadSorter_thread.h
+
+Description:
+
+Header file declares the linked list node* that all the rows of the csv are stored. Also defines STDIN, STDOUT, and STDERR.
+
+Using multiThreadSorter_thread.c
+
+Compile mergesort.c into mergesort.o and then compile multiThreadSorter_thread.c to an executable using merge.o. To sort directory INPUTDIR and output the sorted CSV files to directory OUTPUTDIR using COLUMN to sort each file by run the command:
+
+./multiThreadSorter -c COLUMN -d INPUTDIR -o OUTPUTDIR
+
+Note: The flag order does not matter.
+
+Testing:
+
+To test our program, we used a shell script called csvMaker.sh to create a given amount of files, which were created from different lines of the given movie_metadata.csv file. We also used a testing script called timeTest.sh which ran the time program on assignments 1 and 2. We used these scripts to test the speeds on different amounts of files and subdirectories and compare the speeds.
